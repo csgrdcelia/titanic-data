@@ -14,29 +14,56 @@ open HomeMadeCollections
 // That's not actually what we want
 // The dataset is described here:
 // https://www.kaggle.com/c/titanic/data
-type Passenger = string array
+type Gender = | Male | Female
+type Passenger = {
+    Name: string
+    Age: Option<decimal>
+    Gender: Gender
+    Fare: decimal
+    Survived: bool
+}
+
+let parseDecimal (s: string) = 
+    System.Decimal.Parse(s, System.Globalization.CultureInfo.InvariantCulture)
+
+let skipFirst list = 
+    match list with 
+    | [] -> invalidOp "The list is empty"
+    | _ :: elements -> elements
 
 let Run () =
     let file = System.IO.File.ReadAllLines(__SOURCE_DIRECTORY__ + "/../CsvFiles/titanic.csv")
     let data =
         [|
-            for line in file do
+            for line in skipFirst (Array.toList(file)) do
             yield parseLineWithRegex line
         |]
 
     // We want to map a line to a Passenger type
-    let mapPassenger (a: string array) : Passenger = __
+    let mapPassenger (a: string array) : Passenger = 
+        {
+            Name = a.[2]
+            Age = if a.[4] = "" then None else Some(parseDecimal a.[4])
+            Gender = if a.[3] = "male" then Male else Female
+            Fare = System.Decimal.Parse(a.[8])
+            Survived = a.[0] = "1"
+        }
+    
+    mapPassenger (data.[4])
 
     // We want to load the list of all the passengers
-    let passengers: Passenger list = __ 
+    let passengers: Passenger list = [
+        for line in data do 
+        yield mapPassenger line 
+    ]
 
     // Now we can start to answer questions!
 
     // How many passengers are there in this dataset?
-    let passengersCount : int = __
+    let passengersCount : int = passengers.Length
 
     // Who is the 247th passenger in this dataset?
-    let passenger247 : Passenger = __
+    let passenger247 : Passenger = passengers.[246]
 
     // How many childen below 10 years old are there in this dataset?
     let passengersBelow10YearsOldCount : int = __
